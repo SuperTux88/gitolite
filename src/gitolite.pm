@@ -555,14 +555,18 @@ sub setup_gitweb_access
         open(DESC, ">", $desc_file);
         print DESC $desc . "\n";
         close DESC;
+        system("git", "config", "gitweb.description", $desc);
     } else {
         unlink $desc_file unless $is_wild;
+        system("git config --unset-all gitblit.description 2>/dev/null") unless $is_wild;
     }
 
     if ($owner) {
         system("git", "config", "gitweb.owner", $owner);
+        system("git", "config", "gitblit.owner", $owner);
     } else {
         system("git config --unset-all gitweb.owner 2>/dev/null") unless $is_wild;
+        system("git config --unset-all gitblit.owner 2>/dev/null") unless $is_wild;
     }
 
     # if there are no gitweb.* keys set, remove the section to keep the config file clean
@@ -571,7 +575,24 @@ sub setup_gitweb_access
         system("git config --remove-section gitweb 2>/dev/null");
     }
 
-    return ($desc or can_read($repo, 'gitweb'));
+    my $read = can_read($repo, 'gitweb');
+
+    # gitblit stuff
+    if($read) {
+        system("git", "config", "gitblit.accessRestriction", "PUSH");
+    } else {
+        system("git", "config", "gitblit.accessRestriction", "VIEW");
+    }
+    system("git", "config", "gitblit.useTickets", "false");
+    system("git", "config", "gitblit.useDocs", "false");
+    system("git", "config", "gitblit.showRemoteBranches", "false");
+    system("git", "config", "gitblit.isFrozen", "false");
+    system("git", "config", "gitblit.showReadme", "false");
+    system("git", "config", "gitblit.skipSizeCalculation", "false");
+    system("git", "config", "gitblit.skipSummaryMetrics", "false");
+    system("git", "config", "gitblit.federationStrategy", "FEDERATE_THIS");
+
+    return ($desc or $read);
         # this return value is used by the caller to write to projects.list
 }
 
