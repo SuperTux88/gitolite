@@ -555,7 +555,7 @@ sub setup_gitweb_access
         open(DESC, ">", $desc_file);
         print DESC $desc . "\n";
         close DESC;
-        system("git", "config", "gitweb.description", $desc);
+        system("git", "config", "gitblit.description", $desc);
     } else {
         unlink $desc_file unless $is_wild;
         system("git config --unset-all gitblit.description 2>/dev/null") unless $is_wild;
